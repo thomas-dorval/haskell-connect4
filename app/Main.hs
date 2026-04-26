@@ -1,6 +1,9 @@
 module Main (main) where
 
-import Lib
+import Board
 
 main :: IO ()
-main = someFunc
+main = do
+  putStrLn "==============================\n\tHaskell Connect-4 Project\n\tBy Thomas Dorval\n==============================\n"
+
+
