@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module Board where
 
+import InputHelper (inputHelpReturn)
+
 data Chip = Red | Yellow | Empty
     deriving (Eq, Enum, Bounded)
 
@@ -33,15 +35,10 @@ instance Show Game where
 
 -- Prompt user for whether they want to play with the standard Connect-4 board or a custom sized board; redirect to proper functions.
 promptBoardType :: IO Board
-promptBoardType = do
-    putStrLn "Do you want to play with the default board (7 horizontal x 6 vertical) or a custom board?\n\t1. Default Board\n\t2. Custom Board\n"
-    ans <- getLine
-    case ans of
-        "1" -> return $ Board (boardInit (7, 6))
-        "2" -> promptCustomBoard
-        _ -> do
-            putStrLn "Please enter a valid answer!"
-            promptBoardType
+promptBoardType = 
+    inputHelpReturn "Do you want to play with the default board (7 horizontal x 6 vertical) or a custom board?\n\t1. Default Board\n\t2. Custom Board"
+                      ['1', '2']
+                      [return $ Board (boardInit (7, 6)), promptCustomBoard]
 
 -- Ask user for custom board dimensions, where x must be greater than or equal to y, must be positive integers, and cannot be greater than 10.
 promptCustomBoard :: IO Board
@@ -80,12 +77,15 @@ isBoardFull board = all (isColumnFull board) [0..length (let Board grid = board 
 -- If the column is full, inform the user to choose another column.
 placeChipInBoard :: Game -> Int -> IO Game
 placeChipInBoard (Game (board, turn)) col
-    | isColumnFull board col = do
+    | col < 1 || col > length (let Board grid = board in grid) = do
+        putStrLn "Invalid column. Please enter a valid column number."
+        return (Game (board, turn))
+    | isColumnFull board (col - 1) = do
         putStrLn "Column is full. Please choose another column."
         return (Game (board, turn))
     | otherwise = do
         let chip = if even turn then Red else Yellow
-            newBoard = placeChipInColumn board col chip
+            newBoard = placeChipInColumn board (col - 1) chip
         return (Game (newBoard, turn + 1))
     
 -- Place a chip in the specified column and return the new board state.

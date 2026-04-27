@@ -1,2 +1,9 @@
-main :: IO ()
-main = putStrLn "Test suite not yet implemented"
+module Spec where
+
+import Board
+import Check
+import Logic
+
+
+--test :: Spec
+--test = do

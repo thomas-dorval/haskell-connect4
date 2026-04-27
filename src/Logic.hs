@@ -1,7 +1,8 @@
-module Logic where
+module Logic (currentGameState) where
 
 import Board
 import Check
+import InputHelper (inputHelpReturn, inputHelp)
 
 -- Container for game where bool is true if the game is against a computer or false if not.
 type GameState = (Game, Bool)
@@ -15,46 +16,38 @@ type GameState = (Game, Bool)
 -- Check for win
 -- Repeat until win or draw
 -- Ask user if they want to play again, if so loop, if not exit
+
 currentGameState :: IO ()
 currentGameState = do 
     currentGame <- playerCheck
     currentTurn currentGame
 
 currentTurn :: GameState -> IO ()
-currentTurn (Game(board, turn), isComputer) = 
-    if not (checkAllWin board)
-        then do
-            currentGame <- playerTurn (Game(board, turn), isComputer)
-            currentTurn currentGame
+currentTurn (Game(board, turn), isComputer) = do
+    if isBoardFull board
+        then inputHelp "The game is a draw!\nDo you want to play again? (y/n)"
+                       ['y', 'n']
+                       [currentGameState, putStrLn "Thanks for playing!"]
         else do
-            putStrLn "Game over! Do you want to play again? (y/n)"
-            ans <- getLine
-            case ans of
-                "y" -> currentGameState
-                _ -> putStrLn "Thanks for playing!"
+            let (hasWon, winner) = checkAllWin board
+            if not hasWon
+                then do
+                    currentGame <- playerTurn (Game(board, turn), isComputer)
+                    currentTurn currentGame
+            else 
+                inputHelp ("Player " ++ show winner ++ " wins!\nDo you want to play again? (y/n)")
+                    ['y', 'n']
+                    [currentGameState, putStrLn "Thanks for playing!"]
 
 -- Ask user for number of players and if going first or second
 playerCheck :: IO GameState
-playerCheck = do
-    putStrLn "Do you want to play against a computer or another player?\n\t1. Another Player\n\t2. Computer\n"
-    ans <- getLine
-    case ans of
-        "1" -> do
-            board <- promptBoardType
-            return (Game (board, 0), False) -- Two players, so turn starts at 0
-        "2" -> do
-            putStrLn "Computer player WIP."
-            playerCheck
-        --    putStrLn "Do you want to go first or second?\n\t1. First\n\t2. Second\n"
-        --    orderAns <- getLine
-        --    case orderAns of
-        --        "1" -> return (Game (promptBoardType, 0), True) -- Player goes first, so turn starts at 0
-        --        _ -> do
-        --            putStrLn "Please enter a valid answer!"
-        --            playerCheck
-        _ -> do
-            putStrLn "Please enter a valid answer!"
-            playerCheck
+playerCheck =
+    inputHelpReturn "Do you want to play against a computer or another player?\n\t1. Another Player\n\t2. Computer"
+                      ['1', '2']
+                      [do board <- promptBoardType
+                          return (Game (board, 0), False),
+                       do putStrLn "Computer player WIP."
+                          playerCheck]
 
 -- Inform player of current turn, and if non-computer player, ask for column input to run placeChipInBoard; repeat until valid input is given
 playerTurn :: GameState -> IO GameState

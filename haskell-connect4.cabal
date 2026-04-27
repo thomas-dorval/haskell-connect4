@@ -25,7 +25,10 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
+      Board
+      Check
+      InputHelper
+      Logic
   other-modules:
       Paths_haskell_connect4
   autogen-modules:

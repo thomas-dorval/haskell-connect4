@@ -1,9 +1,14 @@
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module Check where
 
 import Board
 
-checkAllWin :: Board -> Bool
-checkAllWin board = any (checkWin board) [Red, Yellow]
+-- Returns a boolean indicating if the game has been won and a Chip indicating the winner (Red or Yellow) if there is one.
+checkAllWin :: Board -> (Bool, Chip)
+checkAllWin board
+  | checkWin board Red = (True, Red)
+  | checkWin board Yellow = (True, Yellow)
+  | otherwise = (False, Empty)
 
 -- Check if the game has been won by checking for 4 in a row in all directions.
 checkWin :: Board -> Chip -> Bool
@@ -15,7 +20,9 @@ checkWin (Board grid) chip = any (checkDirection grid chip) directions
 checkDirection :: [[Chip]] -> Chip -> (Int, Int) -> Bool
 checkDirection grid chip (dx, dy) = any (checkLine grid chip (dx, dy)) allPositions
   where
-    allPositions = [(x, y) | x <- [0..length grid - 1], y <- [0..length (head grid) - 1]]
+    allPositions = case grid of
+      [] -> []
+      (firstRow:_) -> [(x, y) | x <- [0..length grid - 1], y <- [0..length firstRow - 1]]
 
 -- Check for 4 in a row starting from a specific position in a specific direction.
 checkLine :: [[Chip]] -> Chip -> (Int, Int) -> (Int, Int) -> Bool
@@ -25,5 +32,7 @@ checkLine grid chip (dx, dy) (x, y) =
 -- Get the chip at a specific position, returning Empty if out of bounds.
 getChip :: [[Chip]] -> (Int, Int) -> Chip
 getChip grid (x, y)
-    | x < 0 || x >= length grid || y < 0 || y >= length (head grid) = Empty
-    | otherwise = (grid !! x) !! y
+    | x < 0 || x >= length grid = Empty
+    | otherwise = case grid !! x of
+        row | y < 0 || y >= length row -> Empty
+            | otherwise -> row !! y

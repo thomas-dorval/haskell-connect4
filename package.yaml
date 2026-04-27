@@ -35,6 +35,11 @@ ghc-options:
 
 library:
   source-dirs: src
+  exposed-modules:
+    - Board
+    - Check
+    - InputHelper
+    - Logic
 
 executables:
   haskell-connect4-exe:
