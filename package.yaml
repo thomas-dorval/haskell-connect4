@@ -38,6 +38,7 @@ library:
   exposed-modules:
     - Board
     - Check
+    - CPU
     - InputHelper
     - Logic
 
@@ -62,3 +63,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - haskell-connect4
+    - hspec

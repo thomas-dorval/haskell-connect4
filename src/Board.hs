@@ -1,7 +1,11 @@
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module Board where
 
+import Prelude hiding (not)
 import InputHelper (inputHelpReturn)
+
+class Not a where
+    not :: a -> a
 
 data Chip = Red | Yellow | Empty
     deriving (Eq, Enum, Bounded)
@@ -23,6 +27,11 @@ instance Show Chip where
     show Red = "R"
     show Yellow = "Y"
     show Empty = " "
+
+instance Not Chip where
+    not Red = Yellow
+    not Yellow = Red
+    not Empty = Empty
 
 instance Show Board where
     show (Board board) = concatMap showColumn (reverse (transpose board)) ++ "\n" ++ "  1   2   3   4   5   6   7\n"
@@ -49,7 +58,7 @@ promptCustomBoard = do
     if x >= y && x >= 4 && y >= 4 && x <= 10 && y <= 10
         then return $ Board (boardInit (x, y))
         else do
-            putStrLn "Invalid dimensions. Please try again."
+            putStrLn $ "Invalid dimensions: " ++ show x ++ " " ++ show y ++ ". Please try again."
             promptCustomBoard
 
 -- Parse the dimensions from the user input string above.
@@ -78,10 +87,10 @@ isBoardFull board = all (isColumnFull board) [0..length (let Board grid = board 
 placeChipInBoard :: Game -> Int -> IO Game
 placeChipInBoard (Game (board, turn)) col
     | col < 1 || col > length (let Board grid = board in grid) = do
-        putStrLn "Invalid column. Please enter a valid column number."
+        putStrLn $ "Invalid column: " ++ show col ++ ". Please enter a valid column number."
         return (Game (board, turn))
     | isColumnFull board (col - 1) = do
-        putStrLn "Column is full. Please choose another column."
+        putStrLn $ "Column " ++ show col ++ " is full. Please choose another column."
         return (Game (board, turn))
     | otherwise = do
         let chip = if even turn then Red else Yellow

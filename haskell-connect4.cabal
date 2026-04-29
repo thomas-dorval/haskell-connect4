@@ -27,6 +27,7 @@ library
   exposed-modules:
       Board
       Check
+      CPU
       InputHelper
       Logic
   other-modules:
@@ -67,4 +68,5 @@ test-suite haskell-connect4-test
   build-depends:
       base >=4.7 && <5
     , haskell-connect4
+    , hspec
   default-language: Haskell2010

@@ -3,6 +3,7 @@ module Logic (currentGameState) where
 import Board
 import Check
 import InputHelper (inputHelpReturn, inputHelp)
+import CPU (cpuLogic)
 
 -- Container for game where bool is true if the game is against a computer or false if not.
 type GameState = (Game, Bool)
@@ -30,11 +31,12 @@ currentTurn (Game(board, turn), isComputer) = do
                        [currentGameState, putStrLn "Thanks for playing!"]
         else do
             let (hasWon, winner) = checkAllWin board
-            if not hasWon
+            if Prelude.not hasWon
                 then do
                     currentGame <- playerTurn (Game(board, turn), isComputer)
                     currentTurn currentGame
-            else 
+            else do
+                print board
                 inputHelp ("Player " ++ show winner ++ " wins!\nDo you want to play again? (y/n)")
                     ['y', 'n']
                     [currentGameState, putStrLn "Thanks for playing!"]
@@ -46,8 +48,11 @@ playerCheck =
                       ['1', '2']
                       [do board <- promptBoardType
                           return (Game (board, 0), False),
-                       do putStrLn "Computer player WIP."
-                          playerCheck]
+                       do board <- promptBoardType
+                          inputHelpReturn
+                            "Do you want to go first or second?\n\t1. First\n\t2. Second"
+                            ['1', '2']
+                            [return (Game (board, 0), True), return (Game (board, 1), True)]]
 
 -- Inform player of current turn, and if non-computer player, ask for column input to run placeChipInBoard; repeat until valid input is given
 playerTurn :: GameState -> IO GameState
@@ -57,11 +62,10 @@ playerTurn (game@(Game (board, turn)), isComputer) = do
     if isComputer && odd turn
         then do
             -- Computer's turn: implement a simple strategy (e.g., random valid move)
-            --let col = chooseComputerMove board
-            --putStrLn $ "Computer chooses column: " ++ show col
-            --newGame <- placeChipInBoard game col
-            --return (newGame, isComputer)
-            return (game, isComputer) -- Placeholder for computer move logic
+            let (newGameIO, col) = cpuLogic game
+            putStrLn $ "Computer chooses column " ++ show col ++ "."
+            newGame <- newGameIO
+            return (newGame, isComputer)
         else do
             -- Player's turn: ask for column input
             putStrLn "Please enter the column number to place your chip: "
@@ -71,5 +75,5 @@ playerTurn (game@(Game (board, turn)), isComputer) = do
                     newGame <- placeChipInBoard game col
                     return (newGame, isComputer)
                 _ -> do
-                    putStrLn "Invalid input. Please enter a valid column number."
+                    putStrLn $ "Invalid input: " ++ colInput ++ ". Please enter a valid column number."
                     playerTurn (game, isComputer)
