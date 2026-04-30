@@ -32,20 +32,30 @@ checkWin (Board grid) chip distance =
 -- For distance=4, returns (True, Nothing) if 4 in a row is found.
 -- For distance=3, returns (True, Just emptyPos) if 3 in a row with empty 4th is found, else (False, Nothing).
 checkLine :: Board -> Chip -> Int -> (Int, Int) -> (Int, Int) -> (Bool, Maybe (Int, Int))
-checkLine (Board grid) chip distance (dx, dy) (x, y) =
-  if distance == 4 
-    then let chipLine = [getChip (Board grid) (x + i * dx, y + i * dy) | i <- [0..distance - 1]]
-         in (all (== chip) chipLine, Nothing)
-    else let chipLine = [getChip (Board grid) (x + i * dx, y + i * dy) | i <- [0..distance - 1]]
+checkLine board@(Board grid) chip distance (dx, dy) (x, y) =
+  if distance == 4
+    then let positions = [(x + i * dx, y + i * dy) | i <- [0..distance - 1]]
+         in if all (isValidPos board) positions
+               then let chipLine = map (getChip board) positions
+                    in (all (== chip) chipLine, Nothing)
+               else (False, Nothing)
+    else let positions = [(x + i * dx, y + i * dy) | i <- [0..distance - 1]]
              emptyPos = (x + distance * dx, y + distance * dy)
-             emptyChip = getChip (Board grid) emptyPos
-         in if all (== chip) chipLine && emptyChip == Empty
-            then let (ex, ey) = emptyPos --check if emptyPos has a chip underneath it or is on the bottom row
-                     belowPos = (ex, ey - 1)
-                 in if ey == 0 || getChip (Board grid) belowPos /= Empty
-                    then (True, Just emptyPos)
-                    else (False, Nothing)
-             else (False, Nothing)
+         in if all (isValidPos board) positions && isValidPos board emptyPos
+               then let chipLine = map (getChip board) positions
+                        emptyChip = getChip board emptyPos
+                    in if all (== chip) chipLine && emptyChip == Empty
+                          then let (ex, ey) = emptyPos --check if emptyPos has a chip underneath it or is on the bottom row
+                                   belowPos = (ex, ey - 1)
+                               in if ey == 0 || getChip board belowPos /= Empty
+                                     then (True, Just emptyPos)
+                                     else (False, Nothing)
+                          else (False, Nothing)
+               else (False, Nothing)
+
+isValidPos :: Board -> (Int, Int) -> Bool
+isValidPos (Board grid) (x, y) =
+    x >= 0 && x < length grid && y >= 0 && y < length (grid !! x)
 
 -- Get the chip at a specific position, returning Empty if out of bounds.
 getChip :: Board -> (Int, Int) -> Chip
