@@ -34,10 +34,11 @@ instance Not Chip where
     not Empty = Empty
 
 instance Show Board where
-    show (Board board) = concatMap showColumn (reverse (transpose board)) ++ "\n" ++ "  1   2   3   4   5   6   7\n"
+    show (Board board) = concatMap showColumn (reverse (transpose board)) ++ "\n" ++ showIndices ++ "\n"
       where
         showColumn col = "|" ++ concatMap (\chip -> " " ++ show chip ++ " |") col ++ "\n"
         transpose = foldr (zipWith (:)) (repeat [])
+        showIndices = "  " ++ concatMap (\i -> show i ++ "   ") [1..length board]
 
 instance Show Game where
     show (Game (board, turn)) = show board ++ "Turn: " ++ show turn

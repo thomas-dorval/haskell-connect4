@@ -32,7 +32,7 @@ checkWin (Board grid) chip distance =
 -- For distance=4, returns (True, Nothing) if 4 in a row is found.
 -- For distance=3, returns (True, Just emptyPos) if 3 in a row with empty 4th is found, else (False, Nothing).
 checkLine :: Board -> Chip -> Int -> (Int, Int) -> (Int, Int) -> (Bool, Maybe (Int, Int))
-checkLine board@(Board grid) chip distance (dx, dy) (x, y) =
+checkLine board@(Board _) chip distance (dx, dy) (x, y) =
   if distance == 4
     then let positions = [(x + i * dx, y + i * dy) | i <- [0..distance - 1]]
          in if all (isValidPos board) positions
